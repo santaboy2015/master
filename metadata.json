@@ -1,0 +1,7 @@
+{
+  "name": "LOVE AI - Your Professional Dating Assistant",
+  "description": "A charming, modern, and emotionally intelligent AI assistant dedicated to helping you navigate the complex world of modern dating with confidence and authenticity.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
