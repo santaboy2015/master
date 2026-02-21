@@ -175,8 +175,9 @@ class TestPWAAssets:
         assert response.status_code == 200, f"service-worker.js returned {response.status_code}"
         content_type = response.headers.get("content-type", "")
         assert "javascript" in content_type, f"Expected javascript content-type, got '{content_type}'"
-        assert int(response.headers.get("content-length", 0)) > 500, "service-worker.js seems too small"
-        print("✓ service-worker.js accessible")
+        # Check actual content length (response may be gzip-encoded)
+        assert len(response.content) > 500, f"service-worker.js too small: {len(response.content)} bytes"
+        print(f"✓ service-worker.js accessible ({len(response.content)} bytes)")
 
 
 class TestIndexHTMLPWA:
