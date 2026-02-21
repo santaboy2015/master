@@ -93,9 +93,9 @@ export default function AdminLogin() {
                     data-testid="admin-password-input"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Default password: RizzAdmin2024!
-                </p>
+            <p className="text-sm text-muted-foreground">
+              Default password: RizzAdmin2024!
+            </p>
               </div>
 
               <Button
