@@ -356,6 +356,116 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="py-24 sm:py-32" data-testid="pricing-section">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <motion.div variants={itemVariants}>
+              <Badge variant="outline" className="mb-6 rounded-full px-4 py-1.5 border-primary/30 bg-primary/5">
+                <Crown className="w-3 h-3 mr-2 text-primary" />
+                Simple Pricing
+              </Badge>
+            </motion.div>
+            <motion.h2 variants={itemVariants} className="font-heading text-4xl sm:text-5xl font-bold mb-4">
+              Choose Your <span className="gradient-text">Love Level</span>
+            </motion.h2>
+            <motion.p variants={itemVariants} className="text-lg text-muted-foreground max-w-xl mx-auto">
+              Start free and upgrade when you're ready. No hidden fees.
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid md:grid-cols-3 gap-8"
+          >
+            {plans.map((plan, index) => {
+              const isPopular = plan.plan_id === "pro";
+              const planColors = {
+                free: "from-slate-500 to-slate-600",
+                pro: "from-[#FF0055] to-[#FF6B6B]",
+                premium: "from-[#7000FF] to-[#A855F7]"
+              };
+              
+              return (
+                <motion.div key={plan.plan_id} variants={itemVariants}>
+                  <Card 
+                    className={`relative rounded-3xl border-border/50 h-full flex flex-col ${
+                      isPopular ? "border-primary/50 shadow-glow" : ""
+                    }`}
+                    data-testid={`pricing-card-${plan.plan_id}`}
+                  >
+                    {isPopular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <Badge className="rounded-full bg-gradient-to-r from-[#FF0055] to-[#7000FF] text-white border-0 px-4">
+                          Most Popular
+                        </Badge>
+                      </div>
+                    )}
+                    
+                    <CardContent className="p-8 flex flex-col h-full">
+                      <div className="text-center mb-6">
+                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${planColors[plan.plan_id] || planColors.free} flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+                          {plan.plan_id === "premium" ? (
+                            <Crown className="w-7 h-7 text-white" />
+                          ) : plan.plan_id === "pro" ? (
+                            <Zap className="w-7 h-7 text-white" />
+                          ) : (
+                            <Sparkles className="w-7 h-7 text-white" />
+                          )}
+                        </div>
+                        <h3 className="font-heading text-2xl font-bold">{plan.name}</h3>
+                        <p className="text-sm text-muted-foreground">{plan.credits_per_month} AI responses/month</p>
+                      </div>
+                      
+                      <div className="text-center mb-8">
+                        <span className="font-heading text-5xl font-bold">
+                          ${plan.price?.toFixed(0) || 0}
+                        </span>
+                        {plan.price > 0 && (
+                          <span className="text-muted-foreground">/month</span>
+                        )}
+                      </div>
+                      
+                      <ul className="space-y-3 flex-1 mb-8">
+                        {plan.features?.map((feature, featureIndex) => (
+                          <li key={featureIndex} className="flex items-start gap-3">
+                            <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                            <span className="text-sm">{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      
+                      <Button
+                        onClick={() => user ? navigate("/dashboard") : login()}
+                        className={`w-full rounded-xl h-12 ${
+                          isPopular
+                            ? "bg-gradient-to-r from-[#FF0055] to-[#7000FF] hover:opacity-90 text-white"
+                            : plan.plan_id === "premium"
+                            ? "bg-gradient-to-r from-[#7000FF] to-[#A855F7] hover:opacity-90 text-white"
+                            : ""
+                        }`}
+                        variant={!isPopular && plan.plan_id !== "premium" ? "outline" : "default"}
+                      >
+                        {plan.price === 0 ? "Get Started Free" : `Choose ${plan.name}`}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-24 sm:py-32" data-testid="cta-section">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
