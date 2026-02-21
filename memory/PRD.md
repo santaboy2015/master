@@ -81,6 +81,9 @@ A SaaS dating assistant platform powered by GPT-5.2 AI that helps users improve 
 - [x] Authentication
 - [x] Admin dashboard
 - [x] Payment integration
+- [x] PWA conversion
+- [x] Production hardening
+- [x] Deep linking fix
 
 ### P1 (High)
 - [ ] Email notifications for subscription changes
@@ -92,6 +95,14 @@ A SaaS dating assistant platform powered by GPT-5.2 AI that helps users improve 
 - [ ] A/B testing for landing page
 - [ ] Referral program
 - [ ] Chat history saving
+- [ ] Push notifications
+
+## Security Features
+- Security headers (nosniff, frame-options, XSS protection)
+- Request ID tracking for debugging
+- Structured JSON logging
+- CORS configuration
+- Cookie security (httponly, secure, samesite)
 
 ## API Endpoints
 - `GET /api/settings/site` - Public site settings
@@ -103,9 +114,10 @@ A SaaS dating assistant platform powered by GPT-5.2 AI that helps users improve 
 - `GET/PUT /api/admin/settings/*` - Admin settings
 - `GET/PUT/DELETE /api/admin/users/*` - User management
 - `GET /api/admin/analytics` - Platform analytics
+- `GET /api/health` - Health check with DB status
 
 ## Next Tasks
 1. Add email notifications for subscription upgrades
 2. Implement usage analytics dashboard
 3. Add password reset functionality
-4. Consider adding chat history feature
+4. Consider adding push notifications for PWA
