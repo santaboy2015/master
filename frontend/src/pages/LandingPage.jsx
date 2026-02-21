@@ -1,6 +1,7 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../App";
+import { useAuth, API } from "../App";
 import { PageLayout } from "../components/layout/Layout";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
@@ -17,59 +18,71 @@ import {
   Shield,
   Clock,
 } from "lucide-react";
+import axios from "axios";
 
-const features = [
+const iconMap = {
+  Sparkles,
+  MessageCircle,
+  User,
+  Zap,
+  Heart,
+  Star,
+  Shield,
+  Clock,
+};
+
+const defaultFeatures = [
   {
-    icon: Sparkles,
+    icon: "Sparkles",
     title: "Conversation Starters",
     description: "AI-crafted pickup lines that actually work. Personalized based on their profile.",
     color: "from-[#FF0055] to-[#FF6B6B]",
   },
   {
-    icon: MessageCircle,
+    icon: "MessageCircle",
     title: "Chat Reply Suggestions",
     description: "Stuck on what to say? Get witty, engaging replies that keep the conversation flowing.",
     color: "from-[#7000FF] to-[#A855F7]",
   },
   {
-    icon: User,
+    icon: "User",
     title: "Bio Generator",
     description: "Stand out from the crowd with a bio that showcases your personality perfectly.",
     color: "from-[#00FFFF] to-[#22D3EE]",
   },
   {
-    icon: Zap,
+    icon: "Zap",
     title: "Profile Optimizer",
     description: "Get expert feedback on your dating profile to maximize your matches.",
     color: "from-[#FF0055] to-[#7000FF]",
   },
 ];
 
-const stats = [
+const defaultStats = [
   { value: "10M+", label: "Messages Generated" },
   { value: "500K+", label: "Happy Users" },
   { value: "89%", label: "More Matches" },
   { value: "4.9", label: "App Store Rating" },
 ];
 
-const testimonials = [
+const defaultTestimonials = [
   {
     name: "Alex M.",
     avatar: "A",
     text: "Finally landed a date with someone way out of my league. RizzAI made me sound charming!",
-    rating: 5,
+    rating: "5",
   },
   {
     name: "Sarah K.",
     avatar: "S",
     text: "The bio generator is incredible. Got 3x more matches after updating my profile.",
-    rating: 5,
+    rating: "5",
   },
   {
     name: "Mike R.",
     avatar: "M",
     text: "No more awkward silences in chats. The reply suggestions are always on point.",
-    rating: 5,
+    rating: "5",
   },
 ];
 
@@ -99,6 +112,26 @@ const itemVariants = {
 export default function LandingPage() {
   const { login, user } = useAuth();
   const navigate = useNavigate();
+  const [settings, setSettings] = useState({
+    hero_title: "Level Up Your Dating Game",
+    hero_subtitle: "Get AI-powered conversation starters, witty replies, and profile optimization that actually work. Because first impressions matter.",
+    hero_cta: "Start for Free",
+    features: defaultFeatures,
+    stats: defaultStats,
+    testimonials: defaultTestimonials,
+  });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await axios.get(`${API}/settings/site`);
+        setSettings(prev => ({ ...prev, ...response.data }));
+      } catch (error) {
+        console.log("Using default settings");
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const handleGetStarted = () => {
     if (user) {
@@ -108,11 +141,14 @@ export default function LandingPage() {
     }
   };
 
+  const features = settings.features?.length > 0 ? settings.features : defaultFeatures;
+  const stats = settings.stats?.length > 0 ? settings.stats : defaultStats;
+  const testimonials = settings.testimonials?.length > 0 ? settings.testimonials : defaultTestimonials;
+
   return (
     <PageLayout>
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-12 pb-24 sm:pt-20 sm:pb-32" data-testid="hero-section">
-        {/* Background gradient orbs */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#FF0055]/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#7000FF]/20 rounded-full blur-3xl" />
         
@@ -134,16 +170,20 @@ export default function LandingPage() {
               variants={itemVariants}
               className="font-heading text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6"
             >
-              Level Up Your{" "}
-              <span className="gradient-text">Dating Game</span>
+              {settings.hero_title?.split(" ").map((word, i, arr) => (
+                i >= arr.length - 2 ? (
+                  <span key={i} className="gradient-text">{word} </span>
+                ) : (
+                  <span key={i}>{word} </span>
+                )
+              ))}
             </motion.h1>
             
             <motion.p 
               variants={itemVariants}
               className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
             >
-              Get AI-powered conversation starters, witty replies, and profile optimization 
-              that actually work. Because first impressions matter.
+              {settings.hero_subtitle}
             </motion.p>
             
             <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -153,7 +193,7 @@ export default function LandingPage() {
                 className="rounded-full bg-gradient-to-r from-[#FF0055] to-[#7000FF] hover:opacity-90 text-white px-8 py-6 text-lg font-semibold shadow-glow hover:shadow-glow-lg transition-all"
                 data-testid="hero-cta-btn"
               >
-                {user ? "Go to Dashboard" : "Start for Free"}
+                {user ? "Go to Dashboard" : settings.hero_cta}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button
@@ -167,7 +207,6 @@ export default function LandingPage() {
               </Button>
             </motion.div>
 
-            {/* Trust badges */}
             <motion.div 
               variants={itemVariants}
               className="flex flex-wrap items-center justify-center gap-6 mt-12 text-sm text-muted-foreground"
@@ -242,12 +281,12 @@ export default function LandingPage() {
             className="grid md:grid-cols-2 gap-6"
           >
             {features.map((feature, index) => {
-              const Icon = feature.icon;
+              const Icon = iconMap[feature.icon] || Sparkles;
               return (
                 <motion.div key={index} variants={itemVariants}>
                   <Card className="group relative overflow-hidden rounded-3xl border-border/50 hover:border-primary/50 transition-all h-full" data-testid={`feature-card-${index}`}>
                     <CardContent className="p-8">
-                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color || "from-[#FF0055] to-[#7000FF]"} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
                         <Icon className="w-7 h-7 text-white" />
                       </div>
                       <h3 className="font-heading text-2xl font-semibold mb-3">{feature.title}</h3>
@@ -292,7 +331,7 @@ export default function LandingPage() {
                 <Card className="rounded-3xl border-border/50 h-full" data-testid={`testimonial-card-${index}`}>
                   <CardContent className="p-8">
                     <div className="flex items-center gap-1 mb-4">
-                      {[...Array(testimonial.rating)].map((_, i) => (
+                      {[...Array(parseInt(testimonial.rating) || 5)].map((_, i) => (
                         <Star key={i} className="w-5 h-5 fill-yellow-500 text-yellow-500" />
                       ))}
                     </div>
