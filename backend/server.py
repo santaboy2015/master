@@ -1,9 +1,13 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends, UploadFile, File, Form
+from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import json
+import sys
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -12,9 +16,39 @@ from datetime import datetime, timezone, timedelta
 import httpx
 import hashlib
 import base64
+import traceback
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
+
+# ============== STRUCTURED LOGGING ==============
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno
+        }
+        if record.exc_info:
+            log_entry["exception"] = traceback.format_exception(*record.exc_info)
+        return json.dumps(log_entry)
+
+# Configure structured logging
+logger = logging.getLogger("love-ai")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler(sys.stdout)
+handler.setFormatter(JSONFormatter())
+logger.addHandler(handler)
+
+# Also configure uvicorn loggers
+for log_name in ["uvicorn", "uvicorn.access", "uvicorn.error"]:
+    uvicorn_logger = logging.getLogger(log_name)
+    uvicorn_logger.handlers = [handler]
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
