@@ -1,4 +1,4 @@
-# Rizz AI - Product Requirements Document
+# LOVE-AI - Product Requirements Document
 
 ## Overview
 A SaaS dating assistant platform powered by GPT-5.2 AI that helps users improve their online dating experience through conversation starters, chat reply suggestions, bio generation, and profile optimization.
@@ -10,6 +10,7 @@ A SaaS dating assistant platform powered by GPT-5.2 AI that helps users improve 
 - **Authentication**: Emergent Google OAuth
 - **AI**: GPT-5.2 (text) + GPT-4o (vision) via Emergent LLM Key
 - **Payments**: Stripe
+- **PWA**: Service Worker + Web App Manifest
 
 ## User Personas
 1. **Singles (18-45)**: Using dating apps (Tinder, Bumble, Hinge) who want help with conversations
@@ -24,10 +25,24 @@ A SaaS dating assistant platform powered by GPT-5.2 AI that helps users improve 
 - Subscription tiers (Free/Pro/Premium)
 - Stripe payment integration
 - Admin dashboard with full control
+- PWA with offline capabilities
+- Production-grade security headers
 
-## What's Been Implemented (Feb 21, 2025)
+## What's Been Implemented
 
-### User Features
+### Feb 21, 2026 - PWA & Production Hardening
+- [x] PWA manifest linked and configured
+- [x] Service worker with caching strategies
+- [x] PWA icons (192x192, 512x512)
+- [x] Apple touch icon support
+- [x] Deep linking fix (intended path preserved through OAuth flow)
+- [x] Security headers middleware (X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy)
+- [x] Request ID tracking (X-Request-ID header)
+- [x] Structured JSON logging
+- [x] Enhanced health check endpoint with DB status
+- [x] Global exception handler
+
+### Feb 21, 2025 - Initial Build
 - [x] Landing page with dynamic content
 - [x] Google OAuth login
 - [x] Dashboard with usage stats
@@ -38,15 +53,14 @@ A SaaS dating assistant platform powered by GPT-5.2 AI that helps users improve 
 - [x] Pricing page with 3 tiers
 - [x] Stripe checkout integration
 - [x] Theme toggle (dark/light)
-
-### Admin Features
 - [x] Admin authentication (email whitelist + password)
 - [x] Admin dashboard with analytics
-- [x] Site settings management (hero, features, testimonials, stats)
+- [x] Site settings management
 - [x] Pricing plans management
 - [x] AI prompts customization
 - [x] API keys management
 - [x] User management (view, edit, delete)
+- [x] Legal pages (Privacy, Terms, Refund, Cookie, AI Disclosure, Disclaimer, Contact)
 
 ## Subscription Tiers
 | Plan | Price | Credits/Month | Features |
