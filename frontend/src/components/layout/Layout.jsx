@@ -204,7 +204,7 @@ export const Footer = () => {
           
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-            <span>© 2025 RizzAI. All rights reserved.</span>
+                        <span>© 2025 LOVE-AI. All rights reserved.</span>
           </div>
         </div>
       </div>
