@@ -198,7 +198,7 @@ export const Footer = () => {
               <Sparkles className="w-4 h-4 text-white" />
             </div>
             <span className="font-heading font-bold text-lg">
-              <span className="gradient-text">Rizz</span>AI
+              <span className="gradient-text">LOVE</span>-AI
             </span>
           </div>
           
