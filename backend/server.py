@@ -1211,20 +1211,66 @@ async def get_user_stats(user: User = Depends(require_auth)):
         "usage_percentage": round((user.credits_used / user.monthly_credits) * 100, 1) if user.monthly_credits > 0 else 0
     }
 
+# ============== USER PASSWORD CHANGE ==============
+
+@api_router.post("/user/change-password")
+async def change_user_password(request: Request, user: User = Depends(require_auth)):
+    """Change user password (for users who want to set a local password)"""
+    body = await request.json()
+    new_password = body.get("new_password")
+    
+    if not new_password:
+        raise HTTPException(status_code=400, detail="New password required")
+    
+    if len(new_password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    
+    await db.users.update_one(
+        {"user_id": user.user_id},
+        {"$set": {
+            "password_hash": hash_password(new_password),
+            "password_updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Password updated successfully"}
+
 # ============== HEALTH CHECK ==============
 
 @api_router.get("/")
 async def root():
-    return {"message": "LOVE-AI API is running"}
+    return {"message": "LOVE-AI API is running", "version": "1.0.0"}
 
 @api_router.get("/health")
 async def health():
-    return {"status": "healthy"}
+    """Health check endpoint for monitoring"""
+    try:
+        # Check MongoDB connection
+        await db.command("ping")
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "database": "connected"
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JSONResponse(
+            status_code=503,
+            content={
+                "status": "unhealthy",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "database": "disconnected"
+            }
+        )
 
 # Include router
 app.include_router(api_router)
 
-# CORS middleware
+# Add security middleware (order matters - add before CORS)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+
+# CORS middleware (must be last to wrap everything)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -1233,6 +1279,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Log application startup"""
+    logger.info("LOVE-AI API starting up", extra={
+        "version": "1.0.0",
+        "environment": os.environ.get("ENVIRONMENT", "production")
+    })
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    """Cleanup on shutdown"""
+    logger.info("LOVE-AI API shutting down")
     client.close()
