@@ -115,7 +115,7 @@ export default function Pricing() {
               Simple Pricing
             </Badge>
             <h1 className="font-heading text-4xl sm:text-5xl font-bold mb-4">
-              Choose Your <span className="gradient-text">Rizz Level</span>
+              Choose Your <span className="gradient-text">Love Level</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
               Start free and upgrade when you're ready. No hidden fees, cancel anytime.
