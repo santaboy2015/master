@@ -478,9 +478,13 @@ print('Admin session created successfully');
             self.log("❌ Failed to create test user, stopping tests")
             return False
         
+        # Create admin user for admin tests
+        admin_created = self.create_admin_user_session()
+        
         try:
             # Run all test suites
             self.test_health_endpoints()
+            self.test_public_settings()
             
             auth_success = self.test_auth_endpoints()
             if not auth_success:
@@ -490,6 +494,15 @@ print('Admin session created successfully');
             self.test_subscription_endpoints()
             self.test_ai_endpoints()
             self.test_user_stats()
+            self.test_image_upload()
+            
+            # Admin tests if admin user was created
+            if admin_created:
+                self.test_admin_login()
+                self.test_admin_endpoints()
+            else:
+                self.log("⚠️  Skipping admin tests - admin user creation failed")
+            
             self.test_without_auth()
             
         finally:
@@ -505,7 +518,8 @@ print('Admin session created successfully');
             self.log("🎉 ALL TESTS PASSED!")
             return True
         else:
-            self.log("❌ Some tests failed")
+            failed_count = self.tests_run - self.tests_passed
+            self.log(f"❌ {failed_count} tests failed")
             return False
 
 def main():
