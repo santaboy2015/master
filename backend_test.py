@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 
 class RizzAITester:
-    def __init__(self, base_url="https://charm-assist-1.preview.emergentagent.com"):
+    def __init__(self, base_url="https://matchmake-ai-tool.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
