@@ -105,7 +105,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             duration = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             
             # Log successful requests
-            logger.info(f"Request completed", extra={
+            logger.info("Request completed", extra={
                 "request_id": request_id,
                 "method": request.method,
                 "path": request.url.path,
