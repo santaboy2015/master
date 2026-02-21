@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useAuth, API } from "../App";
 import { PageLayout } from "../components/layout/Layout";
@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Badge } from "../components/ui/badge";
-import { Zap, Copy, RefreshCw, Loader2, CheckCircle2, AlertTriangle, ThumbsUp, Lightbulb } from "lucide-react";
+import { Zap, Copy, RefreshCw, Loader2, CheckCircle2, AlertTriangle, ThumbsUp, Lightbulb, Upload, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 
@@ -50,6 +50,48 @@ export default function ProfileReview() {
   const [platform, setPlatform] = useState("tinder");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [imageData, setImageData] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be less than 10MB");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await axios.post(`${API}/upload/image`, formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      setImageData(response.data.image_data);
+      setImagePreview(URL.createObjectURL(file));
+      toast.success("Image uploaded!");
+    } catch (error) {
+      toast.error("Failed to upload image");
+    }
+  };
+
+  const removeImage = () => {
+    setImageData(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleGenerate = async () => {
     if (!bio.trim()) {
@@ -67,6 +109,7 @@ export default function ProfileReview() {
           bio: bio.trim(),
           photos_description: photosDescription.trim() || null,
           platform,
+          image_data: imageData
         },
         { withCredentials: true }
       );
@@ -91,43 +134,6 @@ export default function ProfileReview() {
 
   const creditsRemaining = user ? user.monthly_credits - user.credits_used : 0;
 
-  // Parse review sections
-  const parseReview = (content) => {
-    if (!content) return null;
-    
-    const sections = {
-      strengths: [],
-      improvements: [],
-      tips: [],
-      overall: ""
-    };
-    
-    const lines = content.split('\n');
-    let currentSection = "overall";
-    
-    for (const line of lines) {
-      const lowerLine = line.toLowerCase();
-      if (lowerLine.includes('strength') || lowerLine.includes('good') || lowerLine.includes('positive')) {
-        currentSection = "strengths";
-      } else if (lowerLine.includes('improve') || lowerLine.includes('red flag') || lowerLine.includes('remove') || lowerLine.includes('avoid')) {
-        currentSection = "improvements";
-      } else if (lowerLine.includes('tip') || lowerLine.includes('suggest') || lowerLine.includes('recommend') || lowerLine.includes('missing')) {
-        currentSection = "tips";
-      }
-      
-      if (line.trim().startsWith('-') || line.trim().startsWith('•') || line.trim().match(/^[0-9]+\./)) {
-        const cleanLine = line.trim().replace(/^[-•0-9.]+\s*/, '');
-        if (cleanLine) {
-          sections[currentSection].push(cleanLine);
-        }
-      } else if (line.trim() && currentSection === "overall") {
-        sections.overall += line.trim() + " ";
-      }
-    }
-    
-    return sections;
-  };
-
   return (
     <PageLayout>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12" data-testid="profile-review-page">
@@ -145,7 +151,7 @@ export default function ProfileReview() {
               Profile <span className="gradient-text">Review</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              Get expert feedback on your dating profile to maximize your matches. We'll tell you what's working and what needs improvement.
+              Get expert feedback on your dating profile. Upload a photo for AI-powered visual analysis.
             </p>
           </motion.div>
 
@@ -161,6 +167,50 @@ export default function ProfileReview() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <Label>Profile Photo (Optional)</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Upload your profile photo for AI-powered visual feedback
+                  </p>
+                  
+                  {imagePreview ? (
+                    <div className="relative w-40 h-40 rounded-2xl overflow-hidden border border-border">
+                      <img 
+                        src={imagePreview} 
+                        alt="Profile preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-white flex items-center justify-center hover:bg-destructive/90"
+                        data-testid="remove-image-btn"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-40 h-40 rounded-2xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center cursor-pointer transition-colors"
+                      data-testid="upload-image-area"
+                    >
+                      <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                      <span className="text-sm text-muted-foreground">Upload Photo</span>
+                      <span className="text-xs text-muted-foreground mt-1">For visual analysis</span>
+                    </div>
+                  )}
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    data-testid="image-input"
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="bio">Your Current Bio *</Label>
                   <Textarea
@@ -174,7 +224,7 @@ export default function ProfileReview() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="photos">Describe Your Photos (Optional)</Label>
+                  <Label htmlFor="photos">Describe Your Other Photos (Optional)</Label>
                   <Textarea
                     id="photos"
                     placeholder="e.g., Main photo is at a beach, second is with friends at a bar, third is hiking..."
@@ -184,7 +234,7 @@ export default function ProfileReview() {
                     data-testid="photos-input"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Describing your photos helps us give more complete feedback
+                    Describing your other photos helps us give more complete feedback
                   </p>
                 </div>
 
@@ -213,12 +263,12 @@ export default function ProfileReview() {
                   {loading ? (
                     <>
                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Analyzing...
+                      {imageData ? "Analyzing Photo & Profile..." : "Analyzing..."}
                     </>
                   ) : (
                     <>
                       <Zap className="w-5 h-5 mr-2" />
-                      Get Profile Review
+                      {imageData ? "Get Full Profile Review" : "Get Profile Review"}
                     </>
                   )}
                 </Button>
@@ -249,10 +299,26 @@ export default function ProfileReview() {
                 </Button>
               </div>
 
+              {/* Image Analysis */}
+              {result.image_analysis && (
+                <Card className="rounded-3xl border-primary/30 bg-primary/5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <ImageIcon className="w-5 h-5 text-primary" />
+                      Photo Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-foreground whitespace-pre-wrap leading-relaxed">
+                      {result.image_analysis}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Review Content */}
               <Card className="rounded-3xl border-border/50 overflow-hidden">
                 <CardContent className="p-6 space-y-6">
-                  {/* Full Review */}
                   <div className="prose prose-sm dark:prose-invert max-w-none">
                     <div className="whitespace-pre-wrap text-foreground leading-relaxed">
                       {result.content}
