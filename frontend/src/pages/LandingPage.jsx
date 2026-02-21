@@ -135,7 +135,7 @@ export default function LandingPage() {
         console.log("Using default settings");
       }
     };
-    fetchSettings();
+    fetchData();
   }, []);
 
   const handleGetStarted = () => {
