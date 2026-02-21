@@ -257,6 +257,197 @@ print('Cleanup completed');
             else:
                 self.log(f"✅ Stats complete: {data.get('credits_remaining', 0)} credits remaining")
 
+    def test_public_settings(self):
+        """Test public settings endpoints"""
+        self.log("=== Testing Public Settings ===")
+        
+        # Test public site settings
+        success, data, status = self.run_test("Get Site Settings", "GET", "/settings/site", 200)
+        if success:
+            expected_fields = ['hero_title', 'hero_subtitle', 'features']
+            missing_fields = [field for field in expected_fields if field not in data]
+            if missing_fields:
+                self.log(f"⚠️  Site settings missing fields: {missing_fields}")
+            else:
+                self.log(f"✅ Site settings loaded: {data.get('hero_title', 'N/A')}")
+        
+        # Test public pricing
+        success, data, status = self.run_test("Get Public Pricing", "GET", "/settings/pricing", 200)
+        if success and isinstance(data, list):
+            self.log(f"✅ Pricing plans loaded: {len(data)} plans")
+        elif success:
+            self.log("⚠️  Pricing response not a list")
+
+    def test_image_upload(self):
+        """Test image upload endpoint"""
+        self.log("=== Testing Image Upload ===")
+        
+        # Create a small test image (1x1 PNG)
+        import base64
+        test_image_b64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+        test_image = base64.b64decode(test_image_b64)
+        
+        # Test image upload with multipart form
+        try:
+            files = {'file': ('test.png', test_image, 'image/png')}
+            headers = {}
+            if self.token:
+                headers['Authorization'] = f'Bearer {self.token}'
+            
+            response = self.session.post(f"{self.api_url}/upload/image", files=files, headers=headers)
+            
+            self.tests_run += 1
+            if response.status_code == 200:
+                self.tests_passed += 1
+                self.log("✅ PASSED - Image Upload")
+                try:
+                    data = response.json()
+                    if 'image_data' in data:
+                        self.log(f"✅ Image processed successfully")
+                    else:
+                        self.log("⚠️  Upload response missing image_data")
+                except:
+                    self.log("⚠️  Upload response not JSON")
+            else:
+                self.log(f"❌ FAILED - Image Upload (Status: {response.status_code})")
+                self.log(f"Response: {response.text[:200]}")
+        except Exception as e:
+            self.tests_run += 1
+            self.log(f"❌ FAILED - Image Upload - Error: {str(e)}")
+
+    def create_admin_user_session(self):
+        """Create admin user session for testing admin features"""
+        self.log("Creating admin user and session...")
+        import subprocess
+        
+        timestamp = int(datetime.now().timestamp())
+        admin_user_id = f"admin-user-{timestamp}"
+        admin_session_token = f"admin_session_{timestamp}"
+        admin_email = "sevillajames2001@gmail.com"  # Admin email from requirements
+        
+        mongo_script = f"""
+mongosh --eval "
+use('test_database');
+var userId = '{admin_user_id}';
+var sessionToken = '{admin_session_token}';
+var email = '{admin_email}';
+db.users.insertOne({{
+  user_id: userId,
+  email: email,
+  name: 'Admin Test User',
+  picture: 'https://via.placeholder.com/150',
+  subscription_tier: 'premium',
+  credits_used: 0,
+  monthly_credits: 500,
+  created_at: new Date()
+}});
+db.user_sessions.insertOne({{
+  user_id: userId,
+  session_token: sessionToken,
+  expires_at: new Date(Date.now() + 7*24*60*60*1000),
+  created_at: new Date()
+}});
+db.admin_sessions.insertOne({{
+  user_id: userId,
+  expires_at: new Date(Date.now() + 8*60*60*1000),
+  created_at: new Date()
+}});
+print('Admin session created successfully');
+"
+        """
+        
+        try:
+            result = subprocess.run(mongo_script, shell=True, capture_output=True, text=True)
+            if "Admin session created successfully" in result.stdout or result.returncode == 0:
+                self.admin_token = admin_session_token
+                self.admin_user_id = admin_user_id
+                self.log(f"✅ Admin user created - User ID: {admin_user_id}")
+                return True
+            else:
+                self.log(f"❌ Failed to create admin user: {result.stderr}")
+                return False
+        except Exception as e:
+            self.log(f"❌ Error creating admin user: {e}")
+            return False
+
+    def test_admin_login(self):
+        """Test admin login functionality"""
+        self.log("=== Testing Admin Login ===")
+        
+        # Use admin token
+        original_token = self.token
+        self.token = getattr(self, 'admin_token', None)
+        
+        if not self.token:
+            self.log("❌ No admin token available")
+            self.token = original_token
+            return False
+        
+        # Test admin login with password
+        admin_login_data = {
+            "email": "sevillajames2001@gmail.com",
+            "password": "RizzAdmin2024!"
+        }
+        
+        success, data, status = self.run_test(
+            "Admin Login", 
+            "POST", 
+            "/admin/login", 
+            200, 
+            admin_login_data
+        )
+        
+        self.token = original_token
+        return success
+
+    def test_admin_endpoints(self):
+        """Test admin-only endpoints"""
+        self.log("=== Testing Admin Endpoints ===")
+        
+        # Use admin token for admin tests
+        original_token = self.token
+        self.token = getattr(self, 'admin_token', None)
+        
+        if not self.token:
+            self.log("❌ No admin token available, skipping admin tests")
+            return False
+        
+        # Test admin analytics
+        success, data, status = self.run_test("Admin Analytics", "GET", "/admin/analytics", 200)
+        if success:
+            expected_fields = ['total_users', 'subscription_breakdown', 'total_credits_used']
+            missing_fields = [field for field in expected_fields if field not in data]
+            if missing_fields:
+                self.log(f"⚠️  Analytics missing fields: {missing_fields}")
+            else:
+                self.log(f"✅ Analytics complete: {data.get('total_users', 0)} total users")
+        
+        # Test admin site settings
+        self.run_test("Admin Get Site Settings", "GET", "/admin/settings/site", 200)
+        
+        # Test admin pricing settings
+        self.run_test("Admin Get Pricing Settings", "GET", "/admin/settings/pricing", 200)
+        
+        # Test admin AI prompts
+        self.run_test("Admin Get AI Prompts", "GET", "/admin/settings/prompts", 200)
+        
+        # Test admin API keys
+        success, data, status = self.run_test("Admin Get API Keys", "GET", "/admin/settings/api-keys", 200)
+        if success:
+            expected_fields = ['has_emergent_key', 'has_stripe_key']
+            missing_fields = [field for field in expected_fields if field not in data]
+            if missing_fields:
+                self.log(f"⚠️  API keys response missing fields: {missing_fields}")
+            else:
+                self.log(f"✅ API keys status: Emergent={data.get('has_emergent_key')}, Stripe={data.get('has_stripe_key')}")
+        
+        # Test admin users list
+        self.run_test("Admin Get Users", "GET", "/admin/users", 200)
+        
+        # Restore original token
+        self.token = original_token
+        return True
+
     def test_without_auth(self):
         """Test endpoints without authentication"""
         self.log("=== Testing Unauthorized Access ===")
@@ -269,6 +460,10 @@ print('Cleanup completed');
         self.run_test("Unauthorized Auth Check", "GET", "/auth/me", 401)
         self.run_test("Unauthorized Stats", "GET", "/stats", 401)
         self.run_test("Unauthorized AI Request", "POST", "/ai/conversation-starters", 401, {"context": "test"})
+        
+        # Should return 403 for admin endpoints
+        self.run_test("Unauthorized Admin Analytics", "GET", "/admin/analytics", 401)
+        self.run_test("Unauthorized Admin Users", "GET", "/admin/users", 401)
         
         # Restore token
         self.token = original_token
