@@ -11,6 +11,13 @@ import ChatReply from "./pages/ChatReply";
 import BioGenerator from "./pages/BioGenerator";
 import ProfileReview from "./pages/ProfileReview";
 import Pricing from "./pages/Pricing";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import RefundPolicy from "./pages/RefundPolicy";
+import CookiePolicy from "./pages/CookiePolicy";
+import AIDisclosure from "./pages/AIDisclosure";
+import Disclaimer from "./pages/Disclaimer";
+import Contact from "./pages/Contact";
 
 // Admin Pages
 import AdminLogin from "./pages/admin/AdminLogin";
