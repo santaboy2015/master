@@ -129,9 +129,15 @@ class APIKeysSettings(BaseModel):
 
 # Default site settings
 DEFAULT_SITE_SETTINGS = {
+    "brand_name": "LOVE-AI",
+    "brand_tagline": "AI-Powered Dating Assistant",
     "hero_title": "Level Up Your Dating Game",
     "hero_subtitle": "Get AI-powered conversation starters, witty replies, and profile optimization that actually work. Because first impressions matter.",
     "hero_cta": "Start for Free",
+    "contact_email": "support@love-ai.com",
+    "contact_phone": "",
+    "company_name": "LOVE-AI Inc.",
+    "company_address": "",
     "features": [
         {"icon": "Sparkles", "title": "Conversation Starters", "description": "AI-crafted pickup lines that actually work. Personalized based on their profile.", "color": "from-[#FF0055] to-[#FF6B6B]"},
         {"icon": "MessageCircle", "title": "Chat Reply Suggestions", "description": "Stuck on what to say? Get witty, engaging replies that keep the conversation flowing.", "color": "from-[#7000FF] to-[#A855F7]"},
