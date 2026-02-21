@@ -192,22 +192,62 @@ export const Footer = () => {
   return (
     <footer className="border-t border-border/50 py-12 mt-auto" data-testid="footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF0055] to-[#7000FF] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+        <div className="grid md:grid-cols-4 gap-8 mb-8">
+          {/* Brand */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF0055] to-[#7000FF] flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              <span className="font-heading font-bold text-lg">
+                <span className="gradient-text">LOVE</span>-AI
+              </span>
             </div>
-            <span className="font-heading font-bold text-lg">
-              <span className="gradient-text">LOVE</span>-AI
-            </span>
+            <p className="text-sm text-muted-foreground">AI-powered dating assistant to help you find your perfect match.</p>
           </div>
           
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
-                        <span>© 2025 LOVE-AI. All rights reserved.</span>
+          {/* Product */}
+          <div>
+            <h4 className="font-semibold mb-4">Product</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link></li>
+              <li><Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link></li>
+            </ul>
+          </div>
+          
+          {/* Legal */}
+          <div>
+            <h4 className="font-semibold mb-4">Legal</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link></li>
+              <li><Link to="/refund" className="hover:text-foreground transition-colors">Refund Policy</Link></li>
+              <li><Link to="/cookies" className="hover:text-foreground transition-colors">Cookie Policy</Link></li>
+            </ul>
+          </div>
+          
+          {/* More */}
+          <div>
+            <h4 className="font-semibold mb-4">More</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link to="/ai-disclosure" className="hover:text-foreground transition-colors">AI Disclosure</Link></li>
+              <li><Link to="/disclaimer" className="hover:text-foreground transition-colors">Disclaimer</Link></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="border-t border-border/50 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <span className="text-sm text-muted-foreground">© 2025 LOVE-AI. All rights reserved.</span>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
+            <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
           </div>
         </div>
       </div>
+    </footer>
+  );
+};
     </footer>
   );
 };
