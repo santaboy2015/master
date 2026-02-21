@@ -318,7 +318,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <p className="font-semibold">Running low on credits!</p>
-                    <p className="text-sm text-muted-foreground">Upgrade to continue using RizzAI</p>
+                    <p className="text-sm text-muted-foreground">Upgrade to continue using LOVE-AI</p>
                   </div>
                 </div>
                 <Button
