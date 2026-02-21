@@ -12,6 +12,15 @@ import BioGenerator from "./pages/BioGenerator";
 import ProfileReview from "./pages/ProfileReview";
 import Pricing from "./pages/Pricing";
 
+// Admin Pages
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminSiteSettings from "./pages/admin/AdminSiteSettings";
+import AdminPricing from "./pages/admin/AdminPricing";
+import AdminPrompts from "./pages/admin/AdminPrompts";
+import AdminApiKeys from "./pages/admin/AdminApiKeys";
+import AdminUsers from "./pages/admin/AdminUsers";
+
 // Components
 import { Toaster } from "./components/ui/sonner";
 
@@ -157,6 +166,35 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
+// Admin Route Component
+const AdminRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (!user.is_admin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Check if admin has authenticated with password
+  if (!user.has_admin_session && location.pathname !== '/admin/login') {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  return children;
+};
+
 // Theme Provider
 const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
@@ -213,6 +251,30 @@ function AppRouter() {
       <Route path="/profile-review" element={
         <ProtectedRoute><ProfileReview /></ProtectedRoute>
       } />
+      
+      {/* Admin Routes */}
+      <Route path="/admin/login" element={
+        <ProtectedRoute><AdminLogin /></ProtectedRoute>
+      } />
+      <Route path="/admin" element={
+        <AdminRoute><AdminDashboard /></AdminRoute>
+      } />
+      <Route path="/admin/site-settings" element={
+        <AdminRoute><AdminSiteSettings /></AdminRoute>
+      } />
+      <Route path="/admin/pricing" element={
+        <AdminRoute><AdminPricing /></AdminRoute>
+      } />
+      <Route path="/admin/prompts" element={
+        <AdminRoute><AdminPrompts /></AdminRoute>
+      } />
+      <Route path="/admin/api-keys" element={
+        <AdminRoute><AdminApiKeys /></AdminRoute>
+      } />
+      <Route path="/admin/users" element={
+        <AdminRoute><AdminUsers /></AdminRoute>
+      } />
+      
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
