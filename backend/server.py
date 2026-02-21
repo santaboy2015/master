@@ -64,14 +64,81 @@ ADMIN_EMAILS = ["sevillajames2001@gmail.com"]
 DEFAULT_ADMIN_PASSWORD = "RizzAdmin2024!"  # Will be hashed on first setup
 
 # Create the main app
-app = FastAPI()
+app = FastAPI(
+    title="LOVE-AI API",
+    description="AI-powered dating assistant API",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
+)
 
 # Create router with /api prefix
 api_router = APIRouter(prefix="/api")
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# ============== SECURITY MIDDLEWARE ==============
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        # Security headers for production
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        # Cache control for API responses
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        return response
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start_time = datetime.now(timezone.utc)
+        
+        # Generate request ID for tracing
+        request_id = str(uuid.uuid4())[:8]
+        
+        try:
+            response = await call_next(request)
+            
+            # Calculate duration
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            
+            # Log successful requests
+            logger.info(f"Request completed", extra={
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+                "status_code": response.status_code,
+                "duration_ms": round(duration, 2),
+                "client_ip": request.client.host if request.client else "unknown"
+            })
+            
+            response.headers["X-Request-ID"] = request_id
+            return response
+            
+        except Exception as e:
+            duration = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+            logger.error(f"Request failed: {str(e)}", extra={
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.url.path,
+                "duration_ms": round(duration, 2),
+                "error": str(e)
+            })
+            raise
+
+# Global exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled exception: {str(exc)}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "message": "An unexpected error occurred. Please try again later."
+        }
+    )
 
 # ============== MODELS ==============
 
