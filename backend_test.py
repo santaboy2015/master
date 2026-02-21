@@ -123,7 +123,10 @@ print('Session created successfully');
 mongosh --eval "
 use('test_database');
 db.users.deleteMany({email: /test\\.user\\./});
+db.users.deleteMany({email: 'sevillajames2001@gmail.com'});
 db.user_sessions.deleteMany({session_token: /test_session/});
+db.user_sessions.deleteMany({session_token: /admin_session/});
+db.admin_sessions.deleteMany({});
 print('Cleanup completed');
 "
         """
