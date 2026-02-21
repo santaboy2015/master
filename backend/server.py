@@ -330,7 +330,7 @@ async def generate_ai_response(system_prompt: str, user_prompt: str, image_data:
         
         chat = LlmChat(
             api_key=api_key,
-            session_id=f"rizz_{uuid.uuid4().hex[:8]}",
+            session_id=f"loveai_{uuid.uuid4().hex[:8]}",
             system_message=system_prompt
         ).with_model("openai", model)
         
