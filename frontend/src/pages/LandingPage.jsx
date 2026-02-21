@@ -120,12 +120,17 @@ export default function LandingPage() {
     stats: defaultStats,
     testimonials: defaultTestimonials,
   });
+  const [plans, setPlans] = useState([]);
 
   useEffect(() => {
-    const fetchSettings = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(`${API}/settings/site`);
-        setSettings(prev => ({ ...prev, ...response.data }));
+        const [settingsRes, plansRes] = await Promise.all([
+          axios.get(`${API}/settings/site`),
+          axios.get(`${API}/subscriptions/plans`)
+        ]);
+        setSettings(prev => ({ ...prev, ...settingsRes.data }));
+        setPlans(plansRes.data);
       } catch (error) {
         console.log("Using default settings");
       }
