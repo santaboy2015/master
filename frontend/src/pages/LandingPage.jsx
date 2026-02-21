@@ -69,7 +69,7 @@ const defaultTestimonials = [
   {
     name: "Alex M.",
     avatar: "A",
-    text: "Finally landed a date with someone way out of my league. RizzAI made me sound charming!",
+    text: "Finally landed a date with someone way out of my league. LOVE-AI made me sound charming!",
     rating: "5",
   },
   {
