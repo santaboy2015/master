@@ -145,7 +145,7 @@ DEFAULT_SITE_SETTINGS = {
         {"icon": "Zap", "title": "Profile Optimizer", "description": "Get expert feedback on your dating profile to maximize your matches.", "color": "from-[#FF0055] to-[#7000FF]"}
     ],
     "testimonials": [
-        {"name": "Alex M.", "avatar": "A", "text": "Finally landed a date with someone way out of my league. RizzAI made me sound charming!", "rating": "5"},
+        {"name": "Alex M.", "avatar": "A", "text": "Finally landed a date with someone way out of my league. LOVE-AI made me sound charming!", "rating": "5"},
         {"name": "Sarah K.", "avatar": "S", "text": "The bio generator is incredible. Got 3x more matches after updating my profile.", "rating": "5"},
         {"name": "Mike R.", "avatar": "M", "text": "No more awkward silences in chats. The reply suggestions are always on point.", "rating": "5"}
     ],
