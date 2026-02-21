@@ -7,7 +7,7 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
-import { Settings, Save, Loader2, Plus, Trash2 } from "lucide-react";
+import { Settings, Save, Loader2, Plus, Trash2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 
@@ -15,6 +15,12 @@ export default function AdminSiteSettings() {
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    current_password: "",
+    new_password: "",
+    confirm_password: ""
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
 
   useEffect(() => {
     fetchSettings();
@@ -44,6 +50,35 @@ export default function AdminSiteSettings() {
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      toast.error("New passwords don't match");
+      return;
+    }
+    
+    if (passwordData.new_password.length < 8) {
+      toast.error("Password must be at least 8 characters");
+      return;
+    }
+    
+    setChangingPassword(true);
+    try {
+      await axios.post(`${API}/admin/change-password`, {
+        current_password: passwordData.current_password,
+        new_password: passwordData.new_password
+      }, { withCredentials: true });
+      
+      toast.success("Admin password changed successfully!");
+      setPasswordData({ current_password: "", new_password: "", confirm_password: "" });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || "Failed to change password");
+    } finally {
+      setChangingPassword(false);
     }
   };
 
@@ -117,7 +152,7 @@ export default function AdminSiteSettings() {
                 <Settings className="w-8 h-8 text-primary" />
                 Site Settings
               </h1>
-              <p className="text-muted-foreground">Customize your landing page content</p>
+              <p className="text-muted-foreground">Customize your website branding and content</p>
             </div>
             <Button
               onClick={handleSave}
@@ -131,6 +166,121 @@ export default function AdminSiteSettings() {
           </div>
 
           <div className="space-y-8">
+            {/* Branding Section */}
+            <Card className="rounded-3xl border-border/50 border-primary/30">
+              <CardHeader>
+                <CardTitle>Branding</CardTitle>
+                <CardDescription>Website name and identity</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Brand Name</Label>
+                    <Input
+                      value={settings.brand_name || ""}
+                      onChange={(e) => setSettings({ ...settings, brand_name: e.target.value })}
+                      placeholder="LOVE-AI"
+                      className="rounded-xl"
+                      data-testid="brand-name-input"
+                    />
+                    <p className="text-xs text-muted-foreground">Displayed in header and footer</p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Brand Tagline</Label>
+                    <Input
+                      value={settings.brand_tagline || ""}
+                      onChange={(e) => setSettings({ ...settings, brand_tagline: e.target.value })}
+                      placeholder="AI-Powered Dating Assistant"
+                      className="rounded-xl"
+                      data-testid="brand-tagline-input"
+                    />
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Company Name</Label>
+                    <Input
+                      value={settings.company_name || ""}
+                      onChange={(e) => setSettings({ ...settings, company_name: e.target.value })}
+                      placeholder="LOVE-AI Inc."
+                      className="rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Contact Email</Label>
+                    <Input
+                      type="email"
+                      value={settings.contact_email || ""}
+                      onChange={(e) => setSettings({ ...settings, contact_email: e.target.value })}
+                      placeholder="support@love-ai.com"
+                      className="rounded-xl"
+                      data-testid="contact-email-input"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Admin Password Section */}
+            <Card className="rounded-3xl border-border/50 border-yellow-500/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="w-5 h-5 text-yellow-500" />
+                  Change Admin Password
+                </CardTitle>
+                <CardDescription>Update your admin panel password</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleChangePassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Current Password</Label>
+                    <Input
+                      type="password"
+                      value={passwordData.current_password}
+                      onChange={(e) => setPasswordData({ ...passwordData, current_password: e.target.value })}
+                      placeholder="Enter current password"
+                      className="rounded-xl"
+                      data-testid="current-password-input"
+                    />
+                  </div>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>New Password</Label>
+                      <Input
+                        type="password"
+                        value={passwordData.new_password}
+                        onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
+                        placeholder="Enter new password"
+                        className="rounded-xl"
+                        data-testid="new-password-input"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Confirm New Password</Label>
+                      <Input
+                        type="password"
+                        value={passwordData.confirm_password}
+                        onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
+                        placeholder="Confirm new password"
+                        className="rounded-xl"
+                        data-testid="confirm-password-input"
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={changingPassword}
+                    variant="outline"
+                    className="rounded-xl"
+                    data-testid="change-password-btn"
+                  >
+                    {changingPassword ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Lock className="w-4 h-4 mr-2" />}
+                    Change Password
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+
             {/* Hero Section */}
             <Card className="rounded-3xl border-border/50">
               <CardHeader>
