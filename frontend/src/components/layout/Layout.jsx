@@ -248,9 +248,6 @@ export const Footer = () => {
     </footer>
   );
 };
-    </footer>
-  );
-};
 
 export const PageLayout = ({ children, showFooter = true }) => {
   return (
