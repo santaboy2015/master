@@ -1,14 +1,14 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth, useTheme } from "../App";
-import { Button } from "../components/ui/button";
+import { useAuth, useTheme } from "../../App";
+import { Button } from "../ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
+} from "../ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { 
   MessageCircle, 
   User, 
