@@ -67,7 +67,12 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, [checkAuth]);
 
-  const login = () => {
+  const login = (intendedPath) => {
+    // Store the intended destination before redirecting to OAuth
+    const destination = intendedPath || window.location.pathname;
+    if (destination !== '/' && destination !== '/dashboard') {
+      localStorage.setItem('auth_redirect_path', destination);
+    }
     // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
     const redirectUrl = window.location.origin + '/dashboard';
     window.location.href = `https://auth.emergentagent.com/?redirect=${encodeURIComponent(redirectUrl)}`;
@@ -126,9 +131,16 @@ const AuthCallback = () => {
         }, { withCredentials: true });
 
         setUser(response.data);
-        // Clear the hash and navigate to dashboard
-        window.history.replaceState(null, '', '/dashboard');
-        navigate('/dashboard', { replace: true, state: { user: response.data } });
+        
+        // Check for stored redirect path (deep linking support)
+        const storedPath = localStorage.getItem('auth_redirect_path');
+        localStorage.removeItem('auth_redirect_path');
+        
+        const redirectTo = storedPath || '/dashboard';
+        
+        // Clear the hash and navigate to intended destination
+        window.history.replaceState(null, '', redirectTo);
+        navigate(redirectTo, { replace: true, state: { user: response.data } });
       } catch (error) {
         console.error("Auth callback error:", error);
         navigate('/');
@@ -150,7 +162,7 @@ const AuthCallback = () => {
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, login } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -167,7 +179,16 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!user) {
-    return <Navigate to="/" replace />;
+    // Store current path for deep linking and trigger login
+    login(location.pathname);
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
 
   return children;
