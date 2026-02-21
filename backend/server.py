@@ -1101,7 +1101,7 @@ async def get_user_stats(user: User = Depends(require_auth)):
 
 @api_router.get("/")
 async def root():
-    return {"message": "Rizz AI API is running"}
+    return {"message": "LOVE-AI API is running"}
 
 @api_router.get("/health")
 async def health():
