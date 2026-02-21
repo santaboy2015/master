@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { useAuth, API } from "../App";
 import { PageLayout } from "../components/layout/Layout";
@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Badge } from "../components/ui/badge";
-import { User, Copy, RefreshCw, Loader2, CheckCircle2, X, Plus } from "lucide-react";
+import { User, Copy, RefreshCw, Loader2, CheckCircle2, X, Plus, Upload, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
 
@@ -61,6 +61,9 @@ export default function BioGenerator() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [imageData, setImageData] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
 
   const addInterest = () => {
     if (interestInput.trim() && interests.length < 10) {
@@ -77,6 +80,45 @@ export default function BioGenerator() {
     if (e.key === "Enter") {
       e.preventDefault();
       addInterest();
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be less than 10MB");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await axios.post(`${API}/upload/image`, formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+
+      setImageData(response.data.image_data);
+      setImagePreview(URL.createObjectURL(file));
+      toast.success("Image uploaded!");
+    } catch (error) {
+      toast.error("Failed to upload image");
+    }
+  };
+
+  const removeImage = () => {
+    setImageData(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -97,6 +139,7 @@ export default function BioGenerator() {
           personality,
           looking_for: lookingFor,
           age: age ? parseInt(age) : null,
+          image_data: imageData
         },
         { withCredentials: true }
       );
@@ -121,7 +164,6 @@ export default function BioGenerator() {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  // Parse bios from content
   const parseBios = (content) => {
     if (!content) return [];
     const bios = [];
@@ -160,7 +202,7 @@ export default function BioGenerator() {
               Bio <span className="gradient-text">Generator</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-              Create a bio that stands out and shows off your personality. No more boring "love to travel" clichés.
+              Create a bio that stands out and shows off your personality. Optionally upload a profile photo for AI analysis.
             </p>
           </motion.div>
 
@@ -176,6 +218,49 @@ export default function BioGenerator() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <Label>Profile Photo (Optional)</Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Upload a photo for AI-powered feedback on your profile picture
+                  </p>
+                  
+                  {imagePreview ? (
+                    <div className="relative w-32 h-32 rounded-2xl overflow-hidden border border-border">
+                      <img 
+                        src={imagePreview} 
+                        alt="Profile preview" 
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        onClick={removeImage}
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-white flex items-center justify-center hover:bg-destructive/90"
+                        data-testid="remove-image-btn"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-32 h-32 rounded-2xl border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center cursor-pointer transition-colors"
+                      data-testid="upload-image-area"
+                    >
+                      <Upload className="w-6 h-6 text-muted-foreground mb-2" />
+                      <span className="text-xs text-muted-foreground">Upload</span>
+                    </div>
+                  )}
+                  
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    data-testid="image-input"
+                  />
+                </div>
+
                 {/* Interests */}
                 <div className="space-y-2">
                   <Label>Your Interests & Hobbies</Label>
@@ -281,12 +366,12 @@ export default function BioGenerator() {
                   {loading ? (
                     <>
                       <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                      Generating...
+                      {imageData ? "Analyzing & Generating..." : "Generating..."}
                     </>
                   ) : (
                     <>
                       <User className="w-5 h-5 mr-2" />
-                      Generate Bio Options
+                      {imageData ? "Generate Bio with Photo Analysis" : "Generate Bio Options"}
                     </>
                   )}
                 </Button>
@@ -299,9 +384,26 @@ export default function BioGenerator() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-4"
+              className="space-y-6"
               data-testid="results-section"
             >
+              {/* Image Analysis */}
+              {result.image_analysis && (
+                <Card className="rounded-3xl border-accent/30 bg-accent/5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <ImageIcon className="w-5 h-5 text-accent" />
+                      Photo Analysis
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-foreground whitespace-pre-wrap leading-relaxed">
+                      {result.image_analysis}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
               <div className="flex items-center justify-between">
                 <h2 className="font-heading text-xl font-semibold">Your Bio Options</h2>
                 <Button
