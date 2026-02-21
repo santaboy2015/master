@@ -541,6 +541,9 @@ async def change_admin_password(request: Request, user: User = Depends(require_a
     if not current_password or not new_password:
         raise HTTPException(status_code=400, detail="Both passwords required")
     
+    if len(new_password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
+    
     admin_doc = await db.admin_config.find_one({"type": "admin_auth"}, {"_id": 0})
     
     if not admin_doc or hash_password(current_password) != admin_doc["password_hash"]:
@@ -548,7 +551,11 @@ async def change_admin_password(request: Request, user: User = Depends(require_a
     
     await db.admin_config.update_one(
         {"type": "admin_auth"},
-        {"$set": {"password_hash": hash_password(new_password)}}
+        {"$set": {
+            "password_hash": hash_password(new_password),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_by": user.email
+        }}
     )
     
     return {"message": "Password updated successfully"}
